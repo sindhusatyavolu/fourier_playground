@@ -1,0 +1,61 @@
+import numpy as np
+import input_power
+
+
+class SkewerMaker(object):
+    """Object to generate random skewers"""
+
+
+    def __init__(self,N,L,inP,seed=1234):
+        """Define here FFT grid and input power"""
+
+        # specify FFT grid
+        self.N=N
+        self.L=L
+        # pixel width 
+        self.dx = L/N
+        # Wavenumbers for the generated Fourier modes, specified by the grid length and resolution
+        self.k = np.fft.fftfreq(N)*2*np.pi/self.dx
+
+        # use input power object to specify amplitude of *discrete* Fourier modes
+        norm = (N/self.dx)
+        self.inP=norm*inP.get_true_p1d(np.abs(self.k))
+
+        # store input seed in case we need to reset it later
+        self.seed=seed
+        # setup random number generator using seed
+        self.gen = np.random.default_rng(seed)
+
+
+    def reset_seed(self):
+        # setup random number generator using seed
+        self.gen = np.random.default_rng(self.seed)
+        
+
+    def make_gaussian_modes(self):
+        """Generate Gaussian random numbers for the Fourier modes of the grid."""
+
+        N=self.N
+        P=self.inP
+        # generate random Fourier modes
+        modes = np.empty(N, dtype=complex)
+        modes[:].real = self.gen.normal(size=N)
+        modes[:].imag = self.gen.normal(size=N)
+        
+        # normalize to desired power and enforce real for i=0, i=(N+1)//2
+        modes[0] = modes[0].real * np.sqrt(P[0])
+        modes[(N+1)//2] = modes[(N+1)//2].real * np.sqrt(P[(N+1)//2])
+        modes[1:(N+1)//2] *= np.sqrt(0.5*P[1:(N+1)//2])    
+
+        # remember that F(-k) = F^*(k)
+        modes[(N+1)//2+1:]=np.conj(modes[1:(N+1)//2])[::-1]
+        
+        return modes
+
+
+    def make_skewer(self):
+        """Generate random Gaussian skewer"""
+
+        modes=self.make_gaussian_modes()
+        return np.fft.ifft(modes).real
+
