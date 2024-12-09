@@ -1,0 +1,12 @@
+Overleaf draft:
+ - https://www.overleaf.com/project/671bd7379ef8c8260bc4ce73
+
+Modules:
+ - input_power.py (define true P1D and PX)
+ - skewer_maker.py (generate Gaussian Random Fields)
+
+Relevant notebooks:
+ - zero_padding.ipynb (importance of zero padding in FFTs)
+ - test_px.ipynb (masking in PX measurements)
+
+
