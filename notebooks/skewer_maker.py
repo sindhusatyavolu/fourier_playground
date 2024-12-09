@@ -1,12 +1,11 @@
 import numpy as np
-import input_power
 
 
 class SkewerMaker(object):
     """Object to generate random skewers"""
 
 
-    def __init__(self,N,L,inP,seed=1234):
+    def __init__(self,N,L,input_power,seed=1234):
         """Define here FFT grid and input power"""
 
         # specify FFT grid
@@ -19,7 +18,10 @@ class SkewerMaker(object):
 
         # use input power object to specify amplitude of *discrete* Fourier modes
         norm = (N/self.dx)
-        self.inP=norm*inP.get_true_p1d(np.abs(self.k))
+        self.inP=norm*input_power.get_true_p1d(np.abs(self.k))
+
+        # ratio of PX over P1D (if making pairs of skewers)
+        self.f_px=input_power.f_px
 
         # store input seed in case we need to reset it later
         self.seed=seed
@@ -58,4 +60,22 @@ class SkewerMaker(object):
 
         modes=self.make_gaussian_modes()
         return np.fft.ifft(modes).real
+
+
+    def make_skewer_pair(self):
+        """Generate pair of random Gaussian skewers"""
+
+        # generate a pair of (uncorrelated) set of Fourier modes
+        modes_A=self.make_gaussian_modes()
+        modes_C=self.make_gaussian_modes()
+
+        # correlate modes, taking into account PX = f_px P1D
+        self.f_px
+        modes_B = self.f_px * modes_A + np.sqrt(1-self.f_px**2) * modes_C
+
+        # iFFT to get skewers
+        skewer_A=np.fft.ifft(modes_A).real
+        skewer_B=np.fft.ifft(modes_B).real
+
+        return skewer_A, skewer_B
 

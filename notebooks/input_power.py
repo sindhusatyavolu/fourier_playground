@@ -5,7 +5,7 @@ class InputPower(object):
     """Setup an initial power object given input parameters"""
 
 
-    def __init__(self,P0=1.0,k0=1,kF=10,r_SiIII=20,f_SiIII=0.05):
+    def __init__(self,P0=1.0,k0=1,kF=10,r_SiIII=20,f_SiIII=0.05,f_px=0.2):
         """Define here your favorite power spectrum."""
 
         self.P0=P0
@@ -13,13 +13,26 @@ class InputPower(object):
         self.kF=kF
         self.r_SiIII=r_SiIII
         self.f_SiIII=f_SiIII
+        self.f_px=f_px
 
 
     def get_true_p1d(self,k):
+        """Evaluate P1D at input wavenumbers k"""
+
+        return self.get_power(k,is_px=False)
+        
+
+    def get_true_px(self,k):
+        """Evaluate PX at input wavenumbers k"""
+
+        return self.get_power(k,is_px=True)
+
+
+    def get_power(self,k,is_px=False):
         """Evaluate power spectrum at input wavenumbers k"""
 
         if np.any(k<0):
-            raise ValueError('get_true_p1d shold receive non-negative values')
+            raise ValueError('InpurPower shold receive non-negative wavenumbers')
 
         # white noise at low-k
         P = self.P0*np.ones_like(k)
@@ -35,7 +48,12 @@ class InputPower(object):
 
         # SiIII(1207) contamination
         P *= (1+self.f_SiIII*np.cos(k*self.r_SiIII))
+
+        # PX will be a scaled version of P1D, for now
+        if is_px:
+            P *= self.f_px
         
         return P
+
 
 
